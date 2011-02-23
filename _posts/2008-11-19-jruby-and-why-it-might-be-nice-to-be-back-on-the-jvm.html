@@ -1,0 +1,23 @@
+---
+layout: post
+title: Permanent Link to JRuby and why it might be nice to be back on the JVM
+author: aaron
+---
+      
+					<p>We ported our Rails application to JRuby in order to do some GC comparisons yesterday.  Not a ton of changes required. Mostly replacing gems with native dependencies. YAML is a bit more strict than its MRI counterpart…. but all told, thats pretty amazing!  Nice job JRuby crew!</p>
+<p>That said…. one interesting, entirely un-scientific, test case.  After requesting the same URL 6 times, the VM got a lot better. 3.4s to 480ms</p>
+<pre>
+Completed in 3380ms (View: 2739, DB: 65) | 200 OK [http://someurl.com/people/3]
+Completed in 1299ms (View: 1211, DB: 18) | 200 OK [http://someurl.com/people/3]
+Completed in 1020ms (View: 949, DB: 20) | 200 OK [http://someurl.com/people/3]
+Completed in 852ms (View: 732, DB: 18) | 200 OK [http://someurl.com/people/3]
+Completed in 743ms (View: 628, DB: 31) | 200 OK [http://someurl.com/people/3]
+Completed in 485ms (View: 374, DB: 14) | 200 OK [http://someurl.com/people/3]
+</pre>
+<p>It doesnt appear to be the DB caching the data. That time stayed consistent.</p>
+<p> I didnt use any crazy runtime flags.. Just jetty, a war file, and -server…. </p>
+<p>If it was something we were memcaching, then after the 2nd request, it would have been consistent. </p>
+<p>The amount of time spent in the view improved dramatically. </p>
+<p>I didnt think JRuby leveraged JIT’ing yet.  Anyone care to guess/explain why it was significantly better per request?</p>
+<p>Note: It did trail off in the 300ms range with further testing…</p>
+				

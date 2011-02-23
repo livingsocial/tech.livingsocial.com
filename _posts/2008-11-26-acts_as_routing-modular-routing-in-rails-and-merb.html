@@ -1,0 +1,51 @@
+---
+layout: post
+title: Permanent Link to Modular routing in rails and merb (acts_as_routing)
+author: warren
+---
+      
+					<p>Here’s a proof of concept plugin that will monkeypatch Rails or Merb routing to allow you to define “acts as blocks” anywhere throughout your application (i.e. a plugin) and then use them in your routes file.<br>
+Imagine the plugin acts_as_commentable defines the following in its init.rb:</p>
+<div class="CodeRay">
+<div class="code">
+<pre><span style="color:#036; font-weight:bold">ActionController</span>::<span style="color:#036; font-weight:bold">Routing</span>.routes_for_acts_as(<span style="color:#A60">:commentable</span>) <span style="color:#080; font-weight:bold">do</span> |map|
+  map.resources <span style="color:#A60">:comments</span>
+  map.best_comment <span style="background-color:#fff0f0"><span style="color:#710">'</span><span style="color:#D20">/best-comment</span><span style="color:#710">'</span></span>, <span style="color:#A60">:controller</span> =&gt; <span style="background-color:#fff0f0"><span style="color:#710">'</span><span style="color:#D20">comments</span><span style="color:#710">'</span></span>, <span style="color:#A60">:action</span> =&gt; <span style="background-color:#fff0f0"><span style="color:#710">'</span><span style="color:#D20">best</span><span style="color:#710">'</span></span>
+<span style="color:#080; font-weight:bold">end</span></pre>
+</div>
+</div>
+<p>If you added these :acts_as to your config/routes.rb:</p>
+<div class="CodeRay">
+<div class="code">
+<pre><span style="color:#036; font-weight:bold">ActionController</span>::<span style="color:#036; font-weight:bold">Routing</span>::<span style="color:#036; font-weight:bold">Routes</span>.draw <span style="color:#080; font-weight:bold">do</span> |map|
+  map.resources <span style="color:#A60">:people</span>, <span style="color:#A60">:acts_as</span> =&gt; [<span style="color:#A60">:commentable</span>]
+  map.resources <span style="color:#A60">:posts</span>, <span style="color:#A60">:acts_as</span> =&gt; [<span style="color:#A60">:commentable</span>]
+<span style="color:#080; font-weight:bold">end</span></pre>
+</div>
+</div>
+<p>You could then use these routes throughout your application:</p>
+<div class="CodeRay">
+<div class="code">
+<pre>  &lt;%=person_comments_path(<span style="color:#036; font-weight:bold">Person</span>.first)%&gt;
+  &lt;%=post_comments_path(<span style="color:#036; font-weight:bold">Post</span>.first)%&gt;
+  &lt;%=person_best_comment_path(<span style="color:#036; font-weight:bold">Person</span>.first)%&gt;</pre>
+</div>
+</div>
+<p>This is equivalent to doing:</p>
+<div class="CodeRay">
+<div class="code">
+<pre><span style="color:#036; font-weight:bold">ActionController</span>::<span style="color:#036; font-weight:bold">Routing</span>::<span style="color:#036; font-weight:bold">Routes</span>.draw <span style="color:#080; font-weight:bold">do</span> |map|
+  map.resources <span style="color:#A60">:people</span> <span style="color:#080; font-weight:bold">do</span> |people_map|
+    people_map.resources <span style="color:#A60">:comments</span>
+    people_map.best_comment <span style="background-color:#fff0f0"><span style="color:#710">'</span><span style="color:#D20">/best-comment</span><span style="color:#710">'</span></span>, <span style="color:#A60">:controller</span> =&gt; <span style="background-color:#fff0f0"><span style="color:#710">'</span><span style="color:#D20">comments</span><span style="color:#710">'</span></span>, <span style="color:#A60">:action</span> =&gt; <span style="background-color:#fff0f0"><span style="color:#710">'</span><span style="color:#D20">best</span><span style="color:#710">'</span></span>
+  <span style="color:#080; font-weight:bold">end</span>
+  map.resources <span style="color:#A60">:posts</span> <span style="color:#080; font-weight:bold">do</span> |posts_map|
+    posts_map.resources <span style="color:#A60">:comments</span>
+    posts_map.best_comment <span style="background-color:#fff0f0"><span style="color:#710">'</span><span style="color:#D20">/best-comment</span><span style="color:#710">'</span></span>, <span style="color:#A60">:controller</span> =&gt; <span style="background-color:#fff0f0"><span style="color:#710">'</span><span style="color:#D20">comments</span><span style="color:#710">'</span></span>, <span style="color:#A60">:action</span> =&gt; <span style="background-color:#fff0f0"><span style="color:#710">'</span><span style="color:#D20">best</span><span style="color:#710">'</span></span>
+  <span style="color:#080; font-weight:bold">end</span>
+<span style="color:#080; font-weight:bold">end</span></pre>
+</div>
+</div>
+<p>The plugin is available on github: <a href="http://github.com/hungrymachine/acts_as_routing/tree/master%20">http://github.com/hungrymachine/acts_as_routing/tree/master</a></p>
+<p>P.S. At some point, I’ll submit patches to Rails and Merb so this functionality is native rather than provided via a monkeypatching plugin.</p>
+				

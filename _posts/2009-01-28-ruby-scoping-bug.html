@@ -1,0 +1,28 @@
+---
+layout: post
+title: Permanent Link to Ruby Scoping Bug?
+author: warren
+---
+      
+					<pre>class Foo
+  def title
+    "Oh hai."
+  end
+
+  def buggy
+    puts title
+
+    if false
+      title = 'Oh noes!'
+    end
+
+    puts title
+  end
+end
+
+Foo.new.buggy</pre>
+<p>This code outputs:</p>
+<pre>Oh hai.
+nil</pre>
+<p>Isn’t it odd that the variable being created in an if-false block is still being created and set to nil?  Hopefully this is fixed in Ruby 1.9.</p>
+				

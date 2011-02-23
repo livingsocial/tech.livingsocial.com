@@ -1,0 +1,32 @@
+---
+layout: post
+title: Permanent Link to Routing to the initial action after facebook application install
+author: val
+---
+      
+					<p>Some facebook applications might have multiple entries. For example, a user might be adding an application (action – <em>new</em>) or replying to an invitation (action – <em>reply</em>, param – <em>id</em>). Since the UI for Facebook application configuration allows to provide only static <em>Post-Add <span class="caps">URL</span></em> it might seem like there is no way to route users back to the original action if they tried to reach when the application has not been installed for them. Luckily, we have full control on the destination via the <em>next</em> paramater of the post install <span class="caps">URL</span>. All we need is to build a <span class="caps">URL</span> using the incoming call parameters with the exclusion of Facebook-specific ones.</p>
+<p>This is an example for <a href="http://code.google.com/p/facebook-rails/">Facebook on Rails</a> based code that might go to the application controller:</p>
+<div class="CodeRay">
+<div class="code">
+<pre><span style="color:#080; font-weight:bold">class</span> <span style="color:#B06; font-weight:bold">ApplicationController</span> &lt; <span style="color:#036; font-weight:bold">Facebook</span>::<span style="color:#036; font-weight:bold">FBMLController</span>
+
+protected
+
+  before_filter <span style="color:#A60">:require_facebook_install</span>
+
+  <span style="color:#080; font-weight:bold">def</span> <span style="color:#06B; font-weight:bold">require_facebook_install</span>
+    <span style="color:#080; font-weight:bold">if</span> in_canvas? &amp;&amp; !fbsession.is_valid?
+      redirect_to fbsession.get_install_url(<span style="color:#A60">:next</span> =&gt; url_for(post_install_params))
+      <span style="color:#038; font-weight:bold">false</span>
+    <span style="color:#080; font-weight:bold">end</span>
+  <span style="color:#080; font-weight:bold">end</span>
+
+  <span style="color:#080; font-weight:bold">def</span> <span style="color:#06B; font-weight:bold">post_install_params</span>
+    params.merge(<span style="color:#A60">:init</span> =&gt; <span style="color:#038; font-weight:bold">true</span>).delete_if { |k, v| k.starts_with?(<span style="background-color:#fff0f0"><span style="color:#710">'</span><span style="color:#D20">fb_sig</span><span style="color:#710">'</span></span>) }
+  <span style="color:#080; font-weight:bold">end</span>
+
+<span style="color:#080; font-weight:bold">end</span></pre>
+</div>
+</div>
+<p>Notice that the code sets the <em>init</em> parameter so it <a href="indentifying-users-who-just-installed-your-facebook-apps">can be used to identify a post install call</a></p>
+				

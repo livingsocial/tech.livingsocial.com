@@ -1,0 +1,17 @@
+---
+layout: post
+title: Permanent Link to How to save 100m of RAM per mongrel (Part 2)
+author: aaron
+---
+      
+					<p><b>UPDATE</b> I’ve added a patch to Rails Edge for this fix, which is much different than the patch below.  See <a href="http://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets/1359-add-optional-format-argument-to-named-routes#ticket-1359-5">here</a></p>
+<p>In a <a href="http://blog.hungrymachine.com/2008/11/8/how-to-save-100m-of-ram-per-mongrel">previous article</a>, I called out the massive memory usage of the default rails resource behavior, and it seems <a href="http://rails.lighthouseapp.com/projects/8994/tickets/1215-add-actions-and-formatted-options-to-mapresources#ticket-1215-18">others</a> have as well.  In an attempt to decrease the number of routes, I commented out the “formatted_*” routes, and manually entered them back by hand.</p>
+<p>But after some internal discussion/testing with Warren, we realized that was sloppy and error prone.  Instead, I hacked Routing segments to allow for an optional format segment, so that formatted routes and normal routes are shared.  The one downside, from what I can tell so far, is you lose “formatted_*” named routes + url helpers for those routes, but passing format to a url_for still works</p>
+<pre>
+   person_path(:id =&gt; 1, :format =&gt; "json") =&gt;  /people/1.json
+</pre>
+<p> In the below gist, you’ll see a OptionalFormatSegment, which sneakily gets around the ‘.’ regex separator, removes the formatted_* named routes added by default, and should be the same solution as the previous post, but without the need to manually put all the routes back in.  </p>
+<p><script src="http://gist.github.com/23712.js"></script></p>
+<p>I’m still testing this approach, but am interested in what other folks think.</p>
+<p><b>Note:</b> This monkey-patch only works on Rails 2.2</p>
+				

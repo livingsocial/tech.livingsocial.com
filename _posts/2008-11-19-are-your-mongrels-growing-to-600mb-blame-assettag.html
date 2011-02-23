@@ -1,0 +1,46 @@
+---
+layout: post
+title: Permanent Link to Are your mongrels growing by 20MB/request on Rails 2.2? Blame AssetTag!
+author: aaron
+---
+      
+					<p>After porting our production application to Rails 2.2, we noticed a major memory leak.</p>
+<p>Beforehand, monit would restart instances a handful of times a day.  After Rails 2.2, monit restarted instances THOUSANDS of times a day.</p>
+<p>This is a graph of one of our haproxy instances a couple days ago.</p>
+<p></p>
+<center><img src="http://blog.hungrymachine.com/assets/2008/11/19/Picture_79.png" style="padding:10px;width:680px"></center>
+<p>We looked at everything, including time spent <a href="http://blog.hungrymachine.com/2008/11/8/how-to-save-100m-of-ram-per-mongrel">rewriting</a> <a href="http://blog.hungrymachine.com/2008/11/11/how-to-save-100m-of-ram-per-mongrel-part-2">Routes</a>, thinking that was the culprit. </p>
+<p>This morning, we all sat around and fought the issue old school style. binary debugging… and found it: AssetTagHelper. See the patch <a href="http://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets/1419-massive-memory-leak-in-assettag">here</a>.</p>
+<p>The new thread-safe asset tag code keeps a static AssetTag::Cache = {}  of all asset_tags created (css,jss, and all images).</p>
+<p>Internally, each AssetTag object keeps a reference to the controller and template objects, and in turn all instance variables you created in your request.  </p>
+<p>What does that mean?  Say you have a people controller, that loads a person and their stuff, and you show images of their stuff via image_tag().</p>
+<pre>
+ class PeopleController  30)
+   end
+ end
+</pre>
+<p> When image_tag() is called, it does rails magic to append file extensions, asset_ids, and the like.  To be smart, it caches those objects so it doesnt hit the file system<br>
+to figure all that out on every request.  The problem is it puts it in a static cache, AssetTag::Cache.</p>
+<p> So each PeopleController instance has a reference to 1 person and 30 Stuffs.  After 1000 people look at their pages, or better yet google crawls your site, you have 1k @controllers with a total of 1000 People Objects, and 1000*30 Stuff objects.  This would normally be fine.  The objects leave scope and get GC’ed. But, if you generate an image tag to an unique asset, AssetTag puts that into a cache, AssetTag::Cache, with a reference to the @controller of the request.  So All People and their Stuff are kept around forever, unable to be GC’ed…. every time a unique image is rendered via AssetTag. Eventually monit has to kill the process.</p>
+<p>The <a href="http://rails.lighthouseapp.com/projects/8994-ruby-on-rails/tickets/1419-massive-memory-leak-in-assettag">patch</a> we just submitted does 2 things.</p>
+<p> 1) It now keeps a cache of just the modified path strings, caching the file access stuff.  If you have tons of local images, reference them by fully qualified host. Thats better for lots of reasons. Cookie-less asset hosts with multiple subdomains FTW!</p>
+<p> 2) It stops caching absolute URL paths. You cant do anything on the filesystem to verify them, and keeping a cache of those would also grow unbounded. We have millions of items in our system, each with a reference to an image.</p>
+<p>Here is a graph of that haproxy today…  Sleeping………</p>
+<p></p>
+<center><img src="http://blog.hungrymachine.com/assets/2008/11/19/Picture_80.png" style="padding:10px;width:680px"></center>
+<p>In order to do some testing of your own, here’s a simplistic after_filter you can add to application.rb (or is it now application_controller.rb?). Make sure you run this in production mode or with cache_classes = true.  As you click around your site, you should see that the cache retains references to controller instances, just to name a few.  After you apply the patch, you’ll see the cache is just strings.</p>
+<pre>
+ def assettag_cache
+    puts "-"*80
+    puts "[AssetTag::Cache] Now #{ActionView::Helpers::AssetTagHelper::AssetTag::Cache.size} items"
+    ActionView::Helpers::AssetTagHelper::AssetTag::Cache.values.each do |asset_tag|
+      if asset_tag === ActionView::Helpers::AssetTagHelper::AssetTag
+        puts "   [Asset] #{asset_tag.instance_variable_get("@source")}  #{asset_tag.instance_variable_get("@controller").class.to_s}"
+      else
+        puts "   [Asset] #{asset_tag}"
+      end
+    end
+  end
+</pre>
+<p>Ohh… and we havent given up on routes… Warren is working on some very interesting enhancements to rails routing.  Looking forward to blogging about that soon.</p>
+				

@@ -1,0 +1,19 @@
+---
+layout: post
+title: Permanent Link to Reviewing Application Health with HAProxy Stats
+author: val
+---
+      
+					<div>
+One of the methods we use for checking the health of <a href="http://www.livingsocial.com/">our applications</a> is stats collected from <a href="http://haproxy.1wt.eu/">HAProxy</a>. We utilize it to see how many requests are scheduled for execution on mongrel instances. The graph is one indication of how our applications perform. When we launched the new version of the site three weeks ago, the graph for a single vertical (ReadingSocial) on a typical Tuesday looked like this:
+</div>
+<div style="padding-top: 10px;">
+<img src="http://blog.hungrymachine.com/assets/2008/3/27/old-hastats.jpg" width="100%">
+</div>
+<div style="padding-top: 20px;">
+So, between porting all verticals to Myspace, Orkut, Bebo, and enhancing the functionality, we spent some time on optimization. In addition to analyzing slow-query logs with <a href="http://hackmysql.com/mysqlsla">mysqlsla</a>, Aaron wrapped all external API calls (and we do a lot of them – to Amazon, Facebook, Myspace, etc) in slow monitoring so we could see where the latest external bottleneck was so we could fix it one by one. Three weeks later the graph became much more peaceful:
+</div>
+<div style="padding: 10px 0;">
+<img src="http://blog.hungrymachine.com/assets/2008/3/27/new-hastats.jpg" width="100%">
+</div>
+				

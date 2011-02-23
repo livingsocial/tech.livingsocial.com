@@ -1,0 +1,87 @@
+---
+layout: post
+title: Permanent Link to How to save 100m of RAM per mongrel
+author: aaron
+---
+      
+					<p><b>UPDATE:</b> See  <a href="http://blog.hungrymachine.com/2008/11/11/how-to-save-100m-of-ram-per-mongrel-part-2">Part 2</a> of this for a better solution</p>
+<p><b>Note:</b> This monkey-patch only works on Rails 2.2</p>
+<p>We recently noticed our mongrels, upon startup, were 244M.  Eek. </p>
+<pre>
+PID USER            PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND
+53749 some_user     15   0  337m 244m 2912 S    0  2.0   0:17.49 mongrel_rails
+</pre>
+<p>Running <a href="http://blog.evanweaver.com/files/doc/fauna/bleak_house/files/README.html">Bleakhouse</a> on our rails app, i was amazed at the number of objects created.  over 2M!</p>
+<pre>
+$ BLEAK_HOUSE=1 ruby-bleak-house ./script/runner 'puts 1'
+** Bleakhouse: installed
+1
+** BleakHouse: working...
+** BleakHouse: complete
+** Bleakhouse: Run 'bleak /tmp/bleak.53749.0.dump' to analyze.
+
+$ bleak /tmp/bleak.53749.0.dump
+Displaying top 20 most common line/class pairs
+2,047,025 total objects
+2,047,025 filled heap slots
+2,403,764 free heap slots
+1779063 __null__:__null__:__node__
+197423 __null__:__null__:String
+16519 __null__:__null__:Array
+12728 __null__:__null__:ActionController::Routing::DividerSegment
+10495 __null__:__null__:Hash
+5676 __null__:__null__:ActionController::Routing::StaticSegment
+5436 __null__:__null__:Class
+5132 __null__:__null__:Regexp
+4525 __null__:__null__:ActionController::Routing::DynamicSegment
+2524 __null__:__null__:ActionController::Routing::Route
+1307 __null__:__null__:Gem::Version
+</pre>
+<p>Whats up with all those routing objects! So i tried a blank routes.rb file….</p>
+<pre>
+519,307 total objects
+519,307 filled heap slots
+233,503 free heap slots
+</pre>
+<p>Arghh….  1.5M objects just because of routes.rb. I know our application is large, lots of resources and nested resources, but thats crazy.  </p>
+<pre>
+$ rake routes | wc -l
+2516
+</pre>
+<p>Ok, so taking a closer look, I realized something. Each resource route has a corresponding formatted_* route, lots of which we dont use. So now for some nasty monkey-patching.</p>
+<pre>
+ActionController::Routing::RouteSet::Mapper.class_eval do
+protected
+
+  def map_unnamed_routes(map, path_without_format, options)
+    map.connect(path_without_format, options)
+    #map.connect("#{path_without_format}.:format", options)
+  end
+
+  def map_named_routes(map, name, path_without_format, options)
+    map.named_route(name, path_without_format, options)
+    #map.named_route("formatted_#{name}", "#{path_without_format}.:format", options)
+  end
+end
+</pre>
+<p>I then manually added back the formatted routes we needed, careful to use named routes as “map.formatted_foo_bar”</p>
+<pre>
+$ rake routes | wc -l
+1490
+</pre>
+<pre>
+$ bleak /tmp/bleak.56554.0.dump
+1,242,796 total objects
+1,242,796 filled heap slots
+1,224,309 free heap slots
+</pre>
+<p>Awesome.  I no longer create almost 800k objects. </p>
+<pre>
+PID USER            PR  NI  VIRT  RES  SHR S %CPU %MEM    TIME+  COMMAND
+56554 someuser     15   0  249m 156m 2912 S    0  1.3   0:09.92 mongrel_rails
+</pre>
+<p><b>244m</b> –&gt; <b>156m</b></p>
+<p>This is not a very elegant solution… but I saved almost 100m per mongrel. Ohh.. and it reduced startup time by 50%.</p>
+<p>How big are your mongrels?</p>
+<p>How does Merb’s router differ from Rails routing? Worth investigating?</p>
+				

@@ -1,0 +1,46 @@
+---
+layout: post
+title: Permanent Link to Super fast IP to lat/lng in Rails – Part 2
+author: aaron
+---
+      
+					<p>In  <a href="http://blog.hungrymachine.com/2007/10/22/super-fast-ip-to-lat-lng-in-rails">Super fast IP to lat/lng in Rails</a>, I showed a solution for fast IP to lat/lng resolution in rails.  I called it “Super fast” because it performed orders of magnitude faster the the RESTful interface, but it was also “Super fast” to implement.  That being said, <a href="http://www.kisscafe.com/">Kyle</a> made a comment to check out the GeoIP gem.  I had heard of <a href="http://www.maxmind.com/">MaxMind</a> before, but I didnt want to spend hundreds of dollars to solve this problem.  What I didnt know was they also have a free download of their “lite” datasource.  They have a <a href="http://www.maxmind.com/app/geolitecountry">GeoLiteCountry</a> and <a href="http://www.maxmind.com/app/geolitecity">GeoLiteCity</a> version, although only the City version has lat/lng info.  They provide wrappers in most languages (including Ruby), and while Kyle’s suggested <a href="http://rubyforge.org/projects/geoip/">geoip</a>, I found <a href="http://rubyforge.org/projects/geoip-city/">geoip_city</a> on RubyForge which I like a bit better. <br><br><br><br>
+[UPDATED]: I had forgotten to include the install instructions for getting the GeoIP C library.</p>
+<p>Install the C bindings, the gem (which isnt packaged as a gem for easy download) and get the data.</p>
+<div class="CodeRay">
+<div class="code">
+<pre>wget http<span style="color:#A60">:/</span>/www.maxmind.com/download/geoip/api/c/<span style="color:#036; font-weight:bold">GeoIP</span>.tar.gz
+tar -zxvf <span style="color:#036; font-weight:bold">GeoIP</span>.tar.gz
+cd <span style="color:#036; font-weight:bold">GeoIP</span>
+./configure &amp;&amp; make &amp;&amp; sudo make install
+
+wget http<span style="color:#A60">:/</span>/rubyforge.org/frs/download.php/<span style="color:#00D; font-weight:bold">27077</span>/geoip_city<span style="color:#60E; font-weight:bold">-0.1</span>.gem
+sudo gem install geoip_city<span style="color:#60E; font-weight:bold">-0.1</span>.gem
+wget http<span style="color:#A60">:/</span>/www.maxmind.com/download/geoip/database/<span style="color:#036; font-weight:bold">GeoLiteCity</span>.dat.gz
+gunzip <span style="color:#036; font-weight:bold">GeoLiteCity</span>.dat.gz
+sudo mkdir <span style="background-color:#fff0ff"><span style="color:#404">/</span><span style="color:#808">usr</span><span style="color:#404">/</span></span>local/share/<span style="color:#036; font-weight:bold">GeoIP</span>
+sudo mv <span style="color:#036; font-weight:bold">GeoLiteCity</span>.dat <span style="background-color:#fff0ff"><span style="color:#404">/</span><span style="color:#808">usr</span><span style="color:#404">/</span></span>local/share/<span style="color:#036; font-weight:bold">GeoIP</span>/<span style="color:#036; font-weight:bold">GeoLiteCity</span>.dat</pre>
+</div>
+</div>
+<p>Then the ruby part:</p>
+<div class="CodeRay">
+<div class="code">
+<pre>&gt;&gt; require <span style="background-color:#fff0f0"><span style="color:#710">'</span><span style="color:#D20">geoip_city</span><span style="color:#710">'</span></span>
+&gt;&gt; g = <span style="color:#036; font-weight:bold">GeoIPCity</span>::<span style="color:#036; font-weight:bold">Database</span>.new(<span style="background-color:#fff0f0"><span style="color:#710">'</span><span style="color:#D20">/usr/local/share/GeoIP/GeoLiteCity.dat</span><span style="color:#710">'</span></span>)
+&gt;&gt; res = g.look_up(<span style="background-color:#fff0f0"><span style="color:#710">'</span><span style="color:#D20">4.2.2.2</span><span style="color:#710">'</span></span>)
+&gt;&gt; puts <span style="background-color:#fff0f0"><span style="color:#710">"</span><span style="color:#D20">lat: </span><span style="background-color:#fff0f0"><span style="color:#710">#{</span>res[<span style="color:#A60">:latitude</span>]<span style="color:#710">}</span></span><span style="color:#D20"> lng: </span><span style="background-color:#fff0f0"><span style="color:#710">#{</span>res[<span style="color:#A60">:longitude</span>]<span style="color:#710">}</span></span><span style="color:#710">"</span></span>
+lat: <span style="color:#60E; font-weight:bold">38.0</span> lng: <span style="color:#60E; font-weight:bold">-97.0</span></pre>
+</div>
+</div>
+<p>So the question is (although its probably obvious), which is faster?</p>
+<div class="CodeRay">
+<div class="code">
+<pre>&gt;&gt;  <span style="color:#036; font-weight:bold">Benchmark</span>.measure { <span style="color:#00D; font-weight:bold">1000</span>.times {<span style="color:#036; font-weight:bold">Hostip</span>.geocode(<span style="background-color:#fff0f0"><span style="color:#710">'</span><span style="color:#D20">4.2.2.2</span><span style="color:#710">'</span></span>)}}.total
+=&gt; <span style="color:#60E; font-weight:bold">1.02</span>
+&gt;&gt;   <span style="color:#036; font-weight:bold">Benchmark</span>.measure { <span style="color:#00D; font-weight:bold">100000</span>.times {g.look_up(<span style="background-color:#fff0f0"><span style="color:#710">'</span><span style="color:#D20">4.2.2.2</span><span style="color:#710">'</span></span>)}}.total
+=&gt; <span style="color:#60E; font-weight:bold">0.5</span></pre>
+</div>
+</div>
+<p>Conclusion?  The C library is MUCH faster than my database version.  200k req/s  vs.  1k req/s.  As a side note, I also tested the “geoip” gem, and it was about 3x faster than my database version. <br><br><br>
+But all in all, for the 5 minutes it took me to write the original version, it was fast enough… but MaxMind GeoLiteCity + the geoip_city gem is Super fast-er.</p>
+				

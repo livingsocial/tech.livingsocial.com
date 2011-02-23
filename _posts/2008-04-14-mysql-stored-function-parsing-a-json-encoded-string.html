@@ -1,0 +1,69 @@
+---
+layout: post
+title: Permanent Link to MySQL Stored Function: parsing a JSON encoded string
+author: warren
+---
+      
+					<p>For analytics purposes, we ended up storing JSON-encoded data as a column in a mysql table.  Although we don’t often need to query it directly, from time to time, it makes things a bit easier/faster.  Below is a MySQL stored function that takes two parameters (a JSON encoded string, and the name of a key) and returns the value associated with that key.</p>
+<pre style="font-size: 10px">
+CREATE FUNCTION JSON(`json` TEXT, `search_key` VARCHAR(255)) RETURNS TEXT DETERMINISTIC BEGIN
+
+  DECLARE i INT DEFAULT 1;
+  DECLARE json_length INT DEFAULT LENGTH(json);
+  DECLARE state ENUM('reading_key','done_reading_key','reading_string', 'reading_array');
+  DECLARE tmp_key TEXT;
+  DECLARE tmp_value TEXT;
+  DECLARE current_char VARCHAR(1);
+
+  WHILE i 
+<h2>Examples</h2>
+<p>Here's a few examples of how it can be used:</p>
+<pre style="font-size: 10px">
+SELECT JSON('{"key1":"val\\"ue1","key2":"value2","key3":["array1","array2"],"key4":"value4"}', 'key1');
+# returns 'val"ue1'
+
+SELECT JSON('{"key1":"val\\"ue1","key2":"value2","key3":["array1","array2"],"key4":"value4"}', 'key2');
+# returns 'value2'
+
+SELECT JSON('{"key1":"val\\"ue1","key2":"value2","key3":["array1","array2"],"key4":"value4"}', 'key3');
+# returns '"array1","array2"'
+
+SELECT JSON('{"key1":"val\\"ue1","key2":"value2","key3":["array1","array2"],"key4":"value4"}', 'key4');
+# returns 'value4'
+
+SELECT JSON('{"key1":"val\\"ue1","key2":"value2","key3":["array1","array2"],"key4":"value4"}', 'key5');
+# returns NULL
+</pre>
+<h2>Notes:</h2>
+<p>If you're trying to run this in the MySQL console, you'll need to set the DELIMITER to be something other than a semi-colon.  Before executing the above, run "DELIMITER $$" and after executing it, run "$$" and then "DELIMITER ;" to set your delimiter back to semi-colon.</p>
+<p>If you're trying to run this in a Rails migration, don't forget to escape the back-slashes (i.e. '\\' should become '\\\\')</p>
+<p>Although this handles several simple use cases of extracting JSON-encoded data, it is by no means comprehensive.   There are many JSON-encoded structures that this will not work on.  This will not work correctly with nested arrays, or with named hashes.</p>
+<p>The performance of this is pretty slow.  A better approach would be to create a UDF that plugs into MySQL.  Here's a UDF to encode JSON data, but not decode: <a href="http://www.mysqludf.org/lib_mysqludf_json/index.php">http://www.mysqludf.org/lib_mysqludf_json/index.php</a></p>
+<h2>Faster Implementation:</h2>
+<p>Here's a faster version, but it's not quite as robust:</p>
+<pre style="font-size: 10px">
+CREATE FUNCTION JSON_FAST(`json` TEXT, `search_key` VARCHAR(255)) RETURNS TEXT DETERMINISTIC BEGIN
+  IF INSTR(json, CONCAT('"', search_key, '":"')) THEN
+    RETURN SUBSTRING_INDEX(SUBSTRING(json, INSTR(json, CONCAT('"', search_key, '":"')) +
+           LENGTH(search_key) + 4), '"', 1);
+  ELSEIF INSTR(json, CONCAT('"', search_key, '": "')) THEN
+    RETURN SUBSTRING_INDEX(SUBSTRING(json, INSTR(json, CONCAT('"', search_key, '": "')) +
+           LENGTH(search_key) + 5), '"', 1);
+  ELSE
+    RETURN NULL;
+  END IF;
+END
+</pre>
+<p>Here's some key differences:</p>
+<pre style="font-size: 10px">
+SELECT JSON('{"key":"value \"plus quotes\""}', 'key');
+# returns 'value "plus quotes"'
+SELECT JSON_FAST('{"key":"value \"plus quotes\""}', 'key');
+# returns 'value \'
+
+SELECT JSON('{"key":["value1","value2"]}', 'key');
+# returns '"value1","value2"'
+SELECT JSON_FAST('{"key":["value1","value2"]}', 'key');
+# returns NULL
+</pre>
+				</pre>

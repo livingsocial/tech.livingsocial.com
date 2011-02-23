@@ -1,0 +1,44 @@
+---
+layout: post
+title: Permanent Link to Curb your Net::HTTP
+author: aaron
+---
+      
+					<p><img style="float:left;padding:0px 12px 12px 12px" src="http://farm1.static.flickr.com/127/373875465_3134e00927_m.jpg"></p>
+<p><a href="http://curb.rubyforge.org/">Curb</a> is a ruby binding for <a href="http://curl.haxx.se/">libcurl</a>. We’ve had sporadic issues with Net::HTTP, which this might aleviate via native dns, native timeouts, performance improvements, etc.   It wouldnt be hard to re-implement ActiveResource, rfacebook, myspace-ruby, etc to use it instead. Anyone using this already? </p>
+<pre>
+sudo gem install curb
+</pre>
+<div style="clear:both"></div>
+<div class="CodeRay">
+<div class="code">
+<pre>require <span style="background-color:#fff0f0"><span style="color:#710">'</span><span style="color:#D20">rubygems</span><span style="color:#710">'</span></span>
+require <span style="background-color:#fff0f0"><span style="color:#710">'</span><span style="color:#D20">curb</span><span style="color:#710">'</span></span>
+require <span style="background-color:#fff0f0"><span style="color:#710">"</span><span style="color:#D20">net/http</span><span style="color:#710">"</span></span>
+require <span style="background-color:#fff0f0"><span style="color:#710">'</span><span style="color:#D20">benchmark</span><span style="color:#710">'</span></span>
+
+iterations = <span style="color:#00D; font-weight:bold">40</span>
+<span style="color:#036; font-weight:bold">Benchmark</span>.bm <span style="color:#080; font-weight:bold">do</span> |x|
+  x.report(<span style="background-color:#fff0f0"><span style="color:#710">"</span><span style="color:#D20">curb</span><span style="color:#710">"</span></span>) <span style="color:#080; font-weight:bold">do</span>
+    iterations.times <span style="color:#080; font-weight:bold">do</span>
+      c = <span style="color:#036; font-weight:bold">Curl</span>::<span style="color:#036; font-weight:bold">Easy</span>.perform(<span style="background-color:#fff0f0"><span style="color:#710">"</span><span style="color:#D20">http://www.google.com</span><span style="color:#710">"</span></span>)
+      <span style="color:#888">#puts c.body_str</span>
+    <span style="color:#080; font-weight:bold">end</span>
+  <span style="color:#080; font-weight:bold">end</span>
+  x.report(<span style="background-color:#fff0f0"><span style="color:#710">"</span><span style="color:#D20">net/http</span><span style="color:#710">"</span></span>)  <span style="color:#080; font-weight:bold">do</span>
+    iterations.times <span style="color:#080; font-weight:bold">do</span>
+      http = <span style="color:#036; font-weight:bold">Net</span>::<span style="color:#036; font-weight:bold">HTTP</span>.start(<span style="background-color:#fff0f0"><span style="color:#710">"</span><span style="color:#D20">www.google.com</span><span style="color:#710">"</span></span>)
+      req = <span style="color:#036; font-weight:bold">Net</span>::<span style="color:#036; font-weight:bold">HTTP</span>::<span style="color:#036; font-weight:bold">Get</span>.new(<span style="background-color:#fff0f0"><span style="color:#710">"</span><span style="color:#D20">/</span><span style="color:#710">"</span></span>)
+      res = http.request(req)
+      <span style="color:#888">#puts res.body</span>
+    <span style="color:#080; font-weight:bold">end</span>
+  <span style="color:#080; font-weight:bold">end</span>
+<span style="color:#080; font-weight:bold">end</span></pre>
+</div>
+</div>
+<pre>
+             user     system      total        real
+curb      0.010000   0.030000   0.040000 (  4.019197)
+net/http  0.140000   0.110000   0.250000 (  4.155106)
+</pre>
+				

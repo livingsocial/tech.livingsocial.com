@@ -1,0 +1,44 @@
+---
+layout: post
+title: Permanent Link to Killing sneaky mongrels
+author: val
+---
+      
+					<p>We found that sometimes <a href="http://www.tildeslash.com/monit/">monit</a> fails to restart all mongrel instances after deployment and some of them end up running with the pid file gone. Since there is no pid, monit believes the instance is not running so it tries to start a new one on the same port and, of course, fails. Which leads to stale mongrel instances with old code. We’re investigating a long term solution but in the meantime have wrapped the mongrel_rails start script with a replacement which finds and kills the stale mongrel instances before starting a new one.</p>
+<div class="CodeRay">
+<div class="code">
+<pre><span style="color:#888">#!/usr/bin/env ruby</span>
+
+<span style="color:#080; font-weight:bold">class</span> <span style="color:#B06; font-weight:bold">MongrelController</span>
+
+  <span style="color:#080; font-weight:bold">def</span> <span style="color:#038; font-weight:bold">self</span>.run_mongrel(args)
+    pid = extract_pid(args)
+    kill_stale_process(pid) <span style="color:#080; font-weight:bold">if</span> pid
+    system <span style="background-color:#fff0f0"><span style="color:#710">"</span><span style="color:#D20">/bin/mongrel_rails </span><span style="background-color:#fff0f0"><span style="color:#710">#{</span> args.join(<span style="background-color:#ffe0e0"><span style="color:#710">'</span><span style="color:#D20"> </span><span style="color:#710">'</span></span>) <span style="color:#710">}</span></span><span style="color:#710">"</span></span>
+  <span style="color:#080; font-weight:bold">end</span>
+
+  <span style="color:#080; font-weight:bold">def</span> <span style="color:#038; font-weight:bold">self</span>.extract_pid(args)
+     (args[<span style="color:#00D; font-weight:bold">0</span>] == <span style="background-color:#fff0f0"><span style="color:#710">'</span><span style="color:#D20">start</span><span style="color:#710">'</span></span>) &amp;&amp; (i = args.index(<span style="background-color:#fff0f0"><span style="color:#710">'</span><span style="color:#D20">-P</span><span style="color:#710">'</span></span>)) &amp;&amp; args[i + <span style="color:#00D; font-weight:bold">1</span>]
+  <span style="color:#080; font-weight:bold">end</span>
+
+  <span style="color:#080; font-weight:bold">def</span> <span style="color:#038; font-weight:bold">self</span>.kill_stale_process(pid)
+    mongrel_processes(pid).each { |p| process_running?(p) &amp;&amp; <span style="color:#036; font-weight:bold">Process</span>.kill(<span style="color:#00D; font-weight:bold">9</span>, p)  }
+  <span style="color:#080; font-weight:bold">end</span>
+
+  <span style="color:#080; font-weight:bold">def</span> <span style="color:#038; font-weight:bold">self</span>.mongrel_processes(pid)
+    <span style="background-color:#f0fff0"><span style="color:#161">`</span><span style="color:#2B2">ps axww -o 'pid command'</span><span style="color:#161">`</span></span>.split(<span style="background-color:#fff0ff"><span style="color:#404">/</span><span style="color:#04D">\n</span><span style="color:#404">/</span></span>).inject([]) <span style="color:#080; font-weight:bold">do</span> |mongrels, process|
+      mongrels &lt;&lt; process[<span style="background-color:#fff0ff"><span style="color:#404">/</span><span style="color:#808">^</span><span style="color:#04D">\s</span><span style="color:#808">*(</span><span style="color:#04D">\d</span><span style="color:#808">+)</span><span style="color:#404">/</span></span>][<span style="color:#d70; font-weight:bold">$1</span>].to_i <span style="color:#080; font-weight:bold">if</span> process.match(<span style="background-color:#fff0ff"><span style="color:#404">%r{</span><span style="color:#808">/bin/mongrel_rails</span><span style="color:#04D">\s</span><span style="color:#808">.*</span><span style="color:#04D">\s</span><span style="color:#808">-P</span><span style="color:#04D">\s</span><span style="background-color:#fff0ff"><span style="color:#404">#{</span> pid <span style="color:#404">}</span></span><span style="color:#04D">\b</span><span style="color:#404">}</span></span>)
+      mongrels
+    <span style="color:#080; font-weight:bold">end</span>
+  <span style="color:#080; font-weight:bold">end</span>
+
+  <span style="color:#080; font-weight:bold">def</span> <span style="color:#038; font-weight:bold">self</span>.process_running?(pid)
+    pid &amp;&amp; (<span style="background-color:#f0fff0"><span style="color:#161">`</span><span style="color:#2B2">ps -p </span><span style="background-color:#f0fff0"><span style="color:#161">#{</span> pid <span style="color:#161">}</span></span><span style="color:#161">`</span></span>.split(<span style="background-color:#fff0ff"><span style="color:#404">/</span><span style="color:#04D">\n</span><span style="color:#404">/</span></span>).size == <span style="color:#00D; font-weight:bold">2</span>)
+  <span style="color:#080; font-weight:bold">end</span>
+
+<span style="color:#080; font-weight:bold">end</span>
+
+<span style="color:#036; font-weight:bold">MongrelController</span>.run_mongrel(<span style="color:#038; font-weight:bold">ARGV</span>)</pre>
+</div>
+</div>
+				

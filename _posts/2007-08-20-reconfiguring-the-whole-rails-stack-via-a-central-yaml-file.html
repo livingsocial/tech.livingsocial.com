@@ -1,0 +1,33 @@
+---
+layout: post
+title: Permanent Link to Reconfiguring the whole rails stack via a central YAML file
+author: val
+---
+      
+					<p>The challenge with hosting of multiple Rails-based Facebook applications is that the amount of users grow quickly. To address this problem we are using <span class="caps">EC2</span> nodes that we can expand/shrink as the demand grows. The price/performance ratio isn’t quite what we first expected, so we are moving toward having a few dedicated boxes instead. Another problem that we add at least a couple of applications a week. On each box that hosts them, we need to reconfigure monit, haproxy, nginx, logrotate and nagios.</p>
+<p>To mitigate both issues on dedicated boxes, we resolved to have a central configuration definition in svn with individual box configurations keyed on localhost name. A ruby script regenerates all those aforementioned configuration files from <span class="caps">ERB</span>-processed templates when it is run on a box and bounces the services. A sample config looks like:</p>
+<div class="CodeRay">
+<div class="code">
+<pre>dedicated<span style="color:#00D; font-weight:bold">-1</span>:
+
+    description: <span style="background-color:#fff0f0"><span style="color:#710">"</span><span style="color:#D20">The dedicated box #1</span><span style="color:#710">"</span></span>
+    ip: <span style="color:#60E; font-weight:bold">64.233</span>.<span style="color:#60E; font-weight:bold">167.99</span>
+    failover: dedicated<span style="color:#00D; font-weight:bold">-2</span>
+
+    apps:
+
+        bookshelf:
+            port: <span style="color:#00D; font-weight:bold">5000</span>
+            instances: <span style="color:#00D; font-weight:bold">20</span>
+            response: <span style="color:#036; font-weight:bold">Book</span>
+
+        ljconnect:
+            port: <span style="color:#00D; font-weight:bold">6000</span>
+            instances: <span style="color:#00D; font-weight:bold">7</span>
+            virtual: ljconnect.hungrymachine.com
+            response: <span style="color:#036; font-weight:bold">Journal</span>
+                      </pre>
+</div>
+</div>
+<p>That definition would generate a monit config with 20 instances of the <em>bookshelf</em> application and 7 instances of the <em>ljconnect</em> application plus all other configurations (including nagios health checks expecting the <em>response</em> value) . It is all possible because we adopt a fixed application deployment file structure and port numbering conventions (via offsets) for all servers.</p>
+				

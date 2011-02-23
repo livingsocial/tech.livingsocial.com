@@ -1,0 +1,16 @@
+---
+layout: post
+title: Permanent Link to JRuby “include?” 2x faster than 1.8.6?
+author: aaron
+---
+      
+					<p>Its been a few months since I’ve looked at JRuby and 1.8.6  can be annoying slow at simple things. So this morning I took another look at Ruby1.9 and JRuby.</p>
+<p>See gist below:<br><script src="http://gist.github.com/142233.js"></script></p>
+<p>6.587s (1.8.6) vs. 5.687s (1.9) vs. 3.556s (JRuby 1.4)… and that’s just the include method. JRuby is almost 2x 1.8.6 without any optimizations.  I’ve read this this <a href="http://blog.headius.com/2009/04/how-jruby-makes-ruby-fast.html">awesome article</a> about JRuby perf optimizations, but its unclear which flags are safe to run in a production environment beyond ‘–server’, which didn’t seem to impact local testing of a handful of iterations.</p>
+<p>Does anyone have Rails benchmarks running nightly comparing 1.8.6 against jruby?  I guess thats a more comprehensive test.</p>
+<p>UPDATE:  Eddie guessed PHP was much faster…  Apparently not.<br><script src="http://gist.github.com/142262.js"></script></p>
+<p>UPDATE 2: Warren suggested a different method other than include, that would work. (a &amp; [i]).empty?<br><script src="http://gist.github.com/142269.js"></script><br>
+Interesting to see it much faster on 1.8.6, consistent on JRuby, and slower on 1.9    </p>
+<p>UPDATE 3 : Responses to comments from dmilith:  Sorry.The original gist had version numbers, if you look at its history. I put them back.  I do mention –server above, and even adding warmup to the script, it doesnt appear to impact numbers as all.  But for it to be warmed up, you’d have to run the benchmark 10k times? Whats an acceptable warmup period?  Also,  –fast seems strange to me.  Didnt help the numbers as well.</p>
+<p>I hate when people say uBenchmarks suck.  The ruby lang specs should include a suite of these types benchmarks as well.  Its important to keep tabs on them to help find route cause when macro performance suites improve/degrade over time.</p>
+				

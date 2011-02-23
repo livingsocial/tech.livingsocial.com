@@ -2,6 +2,11 @@
 layout: default
 ---
 <div class="span-24 content">
+  <h2>{{ page.title }}</h2>
+  <p>
+    Posted by {{ page.author }}
+    on {{ page.date | date_to_string }}
+  </p>
 <div id="post" class="span-15 colborder post">
 {{ content }}
 </div>
