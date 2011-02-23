@@ -1,0 +1,6 @@
+markdown: rdiscount
+pygments: true
+name: LivingSocial Tech
+email: tech@livingsocial.com
+url: http://tech.livingsocial.com
+atom_url: http://feeds.feedburner.com/ls-tech

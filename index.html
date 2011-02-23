@@ -1,0 +1,23 @@
+---
+layout: default
+---
+
+<div class="span-24 page content">
+  <div class="span-15 colborder">
+  <section class="mod">
+    <header>
+      <h1>Blog Posts</h1>
+    </header>
+    <div class="body">
+      <ul class="posts">
+        {% for post in site.posts %}
+          <li><span>{{ post.date | date_to_string }}</span> &raquo;<br /> <a href="{{ post.url }}">{{ post.title }}</a></li>
+        {% endfor %}
+      </ul>
+    </div>
+  </section>
+  </div>
+  <aside class="span-8 last">
+    something goes here
+  </aside>
+</div>

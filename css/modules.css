@@ -1,0 +1,32 @@
+/* GENERIC MODULE STYLES
+============================= */
+section.mod                                 { margin-bottom: 10px; }
+section.mod header                          { position: relative; margin: 0; padding: 0; }
+section.mod header h1                       { border-bottom: 1px solid #DEDEDF; margin-bottom: 10px; }
+section.mod header h2                       { margin-bottom: 0; padding-bottom: 5px; border-bottom: 1px solid #e1e1e1; }
+section.mod header h2 a                     { border: none; }
+section.mod header h2 .secondary            { position: absolute; right: 0; bottom: 7px; font-size: 12px; }
+section.mod div.body                        { position: relative; margin: 0; padding: 0; }
+section.mod div.body ul                     { list-style: none; margin: 0 0 10px; padding: 0; }
+section.mod div.body ul li                  { position: relative; border-bottom: 1px solid #dededf; padding: 5px 0; }
+section.mod div.body ul li:last-child       { border: none; }
+section.mod footer                          { border: none; margin: 0; padding: 0; font-size: 12px; color: #808285; }
+
+/* PLACES A BOX AROUND MODULE CONTENT */
+.box {
+  background: rgba(0, 0, 0, .03);
+  border: 1px solid #ccc;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  boder-radius: 5px;
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -o-box-sizing: border-box;
+  box-sizing: border-box;
+  background-color: #FFF7E8;
+}
+
+.mod.box header,
+.mod.box div.body,
+.mod.box footer               { padding: 5px 10px; }
+.mod.box ul li                { border-bottom: 1px dotted #ccc; }

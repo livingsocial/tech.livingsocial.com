@@ -1,0 +1,92 @@
+/* PROBABLY COULD CLEAN THE FOLLOWING UP */
+.fader, #background         { background: url("http://a0.ak.lscdn.net/deals/images/bingy/background-fade.png") repeat-x scroll left bottom transparent; }
+#background                 { -moz-user-select: none; left: 0; min-height:950px; overflow: hidden; position: fixed; top: 0; width: 100%; z-index:-1; }
+#background .fader          { background:url("http://a0.ak.lscdn.net/deals/images/bingy/background-fade.png") repeat-x scroll left bottom transparent;
+                              bottom:-100px; height:100%; left:0; position: absolute; width:100%; z-index:0; }
+#background img             { left:0; min-width: 1200px; position: absolute; top: 0; width: 100%; z-index: -2; }
+.fader                      { bottom: -100px; height: 420px; left: 0; position: fixed; width: 100%; z-index: -1; }
+.fader-fixed                { background: url("http://a3.ak.lscdn.net/deals/images/bingy/background-fade-fixed.png") repeat-x scroll left bottom transparent;
+                              bottom: -10px; height: 80px; left: 0; position: fixed; width: 100%; z-index: -1; }
+
+.content                    { position: relative; background-color: #fff; padding: 15px; margin-bottom: 10px;
+                              -webkit-border-radius: 5px; -moz-border-radius: 5px; boder-radius: 5px;}
+
+/* HEADER :: BRAND :: MINI DASHBOARD
+========================================= */
+header.brand                    { background-color: #262626; padding: 0; margin-bottom: 10px; height: 80px; }
+
+header.brand h1                 { margin-bottom: 0; margin-top: 0; position: relative; }
+header.brand h1 a.market        { color: #E9BA26; font-size: 20px; left: 190px; letter-spacing: 1px; position: absolute; text-transform: lowercase; top: 31px; }
+header.brand h1 a.livingsocial-logo {
+                                  background: url("/images/livingsocial-logo.png") no-repeat scroll left 0 transparent;
+                                  display: inline-block;
+                                  height: 69px;
+                                  margin-bottom: 0;
+                                  margin-top: 0;
+                                  text-indent: -9999px;
+                                  width: 174px; }
+
+
+
+
+/* HEADER
+======================= */
+div.nav                           { margin-top: 10px; width: 980px; }
+div.nav ul                        { margin: 0; padding: 0; list-style: none; font-size: 16px; font-family: "Rockwell", "Rockwell MT", "American Typewriter",georgia,serif; }
+div.nav ul li                     { width: 130px; margin: 0 0 10px 0; display: block; display: inline-block; background: #fff; background: rgba(255,255,255, .9);
+                                  -webkit-border-radius: 6px; -moz-border-radius: 6px; border-radius: 6px; }
+div.nav ul li a                   { width: 110px; padding: 6px 10px 8px; text-align: center; text-decoration: none; display: inline-block; -webkit-border-radius: 6px; -moz-border-radius: 6px; border-radius: 6px; }
+div.nav ul li a:link              { color: #1781C1; }
+div.nav ul li a:visited           { color: #1781C1; }
+div.nav ul li a:active            { margin: 0px; }
+div.nav ul li a:hover,
+div.nav ul li.selected a          { color: #fff;
+                                  background-color: #9BC03C;
+                                  background: -webkit-gradient(
+                                      linear,
+                                      left bottom,
+                                      left top,
+                                      color-stop(0.07, rgb(155,193,59)),
+                                      color-stop(0.9, rgb(184,212,26))
+                                  );
+                                  background: -moz-linear-gradient(
+                                      center bottom,
+                                      rgb(155,193,59) 7%,
+                                      rgb(184,212,26) 90%
+                                  );}
+div.nav ul li.escapes           { background: transparent; }
+div.nav ul li.escapes a         { text-indent: -9999px; width: 220px; height: 91px; background: #9ec43d url("/deals/images/cobrand/escapes/escapes-nav.png") no-repeat center right; border-top: 1px solid #fff; padding: 10px 0 0 0; margin: 8px 0 0 0; }
+
+/* MODULE :: MINI DASHBOARD :: LOGIN */
+/*.mod.mini-dashboard                           { max-width: 375px; padding:5px 10px; color: #fff; margin-bottom: 0; border: none; position: absolute; right: 0; top: 0; }
+.mod.mini-dashboard p.name                    { margin-bottom: 3px; }
+.mod.mini-dashboard ul                        { list-style: none; margin: 0; padding: 0; }
+.mod.mini-dashboard ul li                     { display: inline; padding-right: 9px; margin-right: 4px; border-right: 1px solid #ababab; }
+.mod.mini-dashboard ul li.last                { border: none; margin: 0; padding: 0;}*/
+
+/* POST
+======================= */
+.post h1              { color: #262626; margin-bottom: 0; }
+.post p               { font-size: 16px; line-height: 18px; }
+.post p.meta          { font-size: 12px; }
+.post center a img    { padding: 3px; border: 1px solid #e1e1e1; margin-bottom: 15px; }
+
+/* ASIDE
+======================= */
+
+
+/* FOOTER
+======================= */
+footer                                    { color: #58595B; margin-top: 10px;  margin-bottom: 30px; font-size: 11px; }
+footer .body                              { background-color: rgba(26, 26, 26, 0.95); padding: 15px; -webkit-border-radius: 6px; -moz-border-radius: 6px; border-radius: 6px; position: relative; }
+footer .body p                            { margin-bottom: 0; }
+footer .body ul                           { list-style: none; margin: 0 0 8px 0; padding: 0; }
+footer .body ul li                        { display: inline-block; border-right: 1px solid #58595B; padding-right: 6px; margin-right: 4px; }
+footer .body ul li:last-child             { border: none; }
+footer .body ul li a                      { color: #66C3FE; }
+
+footer .body ul.follow-us                 { position: absolute; right: 10px; top: 5px; width: 149px; }
+footer .body ul.follow-us li.first        { display: block; border-right: none; color: #fff; text-align: right; }
+footer .body ul.follow-us li a            { text-indent: -9999px; display: block; height: 30px; width: 68px; background:url("http://a2.ak.lscdn.net/deals/images/bingy/social-icons.png") no-repeat scroll left top transparent; }
+footer .body ul.follow-us li a.facebook   { background-position:0 -30px; width:56px; }
+
